@@ -17,19 +17,17 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: const Color(0xFFF5F5F0),
       body: Row(
         children: <Widget>[
-          // Left Side - Image Placeholder
           Expanded(
-            flex: 1, // Takes up 50% of width on large screens
+            flex: 2,
             child: Container(
-              color: Colors.blueGrey[100],
+              color: Colors.transparent,
               child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.image, size: 100, color: Colors.grey),
                     SizedBox(height: 20),
                     Text(
-                      "Image / Branding Here",
+                      "Image Here",
                       style: TextStyle(color: Colors.grey, fontSize: 18),
                     ),
                   ],
@@ -38,40 +36,39 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // Right Side - Form
           Expanded(
             flex: 1,
             child: Center(
-              // Center vertically
               child: SingleChildScrollView(
-                // Scrollable to prevent overflow on small vertical heights
                 padding: const EdgeInsets.all(32.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 20,
                     children: <Widget>[
-                      const Text(
-                        "Welcome!",
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                       const SizedBox(height: 8),
                       const Text(
                         "Please login to your account",
                         style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                      const SizedBox(height: 40),
 
-                      // Username Field
                       TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
+                        decoration: InputDecoration(
+                          hintText: 'Username',
                           prefixIcon: Icon(Icons.person),
-                          border: OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFF5D866C)),
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0xFF5D866C),
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(0),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -81,14 +78,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 20), // Spacing between fields
-                      // NEW: Password Field
                       TextFormField(
                         obscureText: _isObscure,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          hintText: 'Password',
                           prefixIcon: const Icon(Icons.lock),
-                          border: const OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFF5D866C)),
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0xFF5D866C),
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(0),
+                          ),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _isObscure
@@ -110,28 +115,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 30),
-
-                      // Login Button
                       SizedBox(
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              // Process login
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Processing Login'),
-                                ),
-                              );
+                              ScaffoldMessenger.of(context);
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
+                            backgroundColor: Color(0xFF5D866C),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(0),
                             ),
                           ),
                           child: const Text(

@@ -16,15 +16,15 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.deepPurple,
           brightness: Brightness.light,
         ),
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
-          titleLarge: TextStyle(fontSize: 30.0, fontStyle: FontStyle.italic),
-          bodyMedium: TextStyle(fontSize: 14.0),
-        ),
-        fontFamily: 'Georgia',
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: Colors.red,
-        ),
+        //   textTheme: const TextTheme(
+        //     displayLarge: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+        //     titleLarge: TextStyle(fontSize: 30.0, fontStyle: FontStyle.italic),
+        //     bodyMedium: TextStyle(fontSize: 14.0),
+        //   ),
+        //   fontFamily: 'Georgia',
+        //   floatingActionButtonTheme: FloatingActionButtonThemeData(
+        //     backgroundColor: Colors.red,
+        //   ),
       ),
       debugShowCheckedModeBanner: false,
       routerConfig: router,
