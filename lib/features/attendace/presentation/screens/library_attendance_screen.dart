@@ -1,10 +1,10 @@
 import 'dart:async';
+import 'package:attendance_monitoring/features/attendace/presentation/widgets/face_scanner_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import "../../models/student_model.dart";
 import '../../data/datasources/mock_data.dart';
 import "package:attendance_monitoring/features/attendace/presentation/widgets/attendance_log_table.dart";
-import "package:attendance_monitoring/features/attendace/presentation/widgets/face_scanner_view.dart";
 
 class LibraryAttendanceScreen extends StatefulWidget {
   const LibraryAttendanceScreen({super.key});
