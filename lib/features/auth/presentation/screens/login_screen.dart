@@ -1,4 +1,6 @@
 import "package:flutter/material.dart";
+import "package:go_router/go_router.dart";
+import "../../../../core/routes/app_routes.dart";
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -123,6 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (_formKey.currentState!.validate()) {
                               ScaffoldMessenger.of(context);
                             }
+                            context.go(Routes.home);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF5D866C),

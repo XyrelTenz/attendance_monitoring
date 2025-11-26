@@ -1,98 +1,179 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import "../../models/student_model.dart";
 
-class FaceScannerView extends StatelessWidget {
-  final VoidCallback onSimulateScan;
+class AttendanceLogTable extends StatelessWidget {
+  final List<StudentModel> students;
 
-  const FaceScannerView({super.key, required this.onSimulateScan});
+  const AttendanceLogTable({super.key, required this.students});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Responsive Container for Desktop
-        AspectRatio(
-          aspectRatio: 4 / 3, // Standard camera aspect ratio
-          child: Container(
+    // Wrap in a Card for a contained "Desktop" feel
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blueAccent, width: 4),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blueAccent.withOpacity(0.4),
-                  blurRadius: 30,
-                  spreadRadius: 5,
-                ),
-              ],
+              color: Colors.grey.shade100,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(8),
+              ),
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Placeholder for Camera Feed
-                const Icon(
-                  Icons.videocam_off_outlined,
-                  size: 80,
-                  color: Colors.white24,
-                ),
-
-                // Simulated Face Overlay
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.5),
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-
-                // Scanning Animation Line
-                Positioned(
-                  top: 80,
-                  child: Container(
-                    width: 240,
-                    height: 2,
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      boxShadow: [BoxShadow(color: Colors.red, blurRadius: 10)],
-                    ),
-                  ),
-                ),
-
-                const Positioned(
-                  bottom: 20,
-                  child: Text(
-                    "Looking for face...",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      letterSpacing: 1.2,
-                      fontFamily: 'Monospace',
-                    ),
-                  ),
-                ),
-              ],
+            child: const Text(
+              "Today's Logs",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton.icon(
-            onPressed: onSimulateScan,
-            icon: const Icon(Icons.face_retouching_natural),
-            label: const Text("SIMULATE FACE DETECTED"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
-              foregroundColor: Colors.white,
-              elevation: 4,
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.zero,
+              child: SizedBox(
+                width: double.infinity,
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.all(Colors.white),
+                  columnSpacing: 20,
+                  horizontalMargin: 20,
+                  columns: const [
+                    DataColumn(
+                      label: Text(
+                        'TIME',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'STUDENT INFO',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'STATUS',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ],
+                  rows: students.map((student) {
+                    final dateFormat = DateFormat('hh:mm a');
+                    final isOut = student.timeOut != null;
+
+                    return DataRow(
+                      cells: [
+                        // Time Column
+                        DataCell(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                student.timeIn != null
+                                    ? dateFormat.format(student.timeIn!)
+                                    : "--",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                isOut
+                                    ? "OUT: ${dateFormat.format(student.timeOut!)}"
+                                    : "Active",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Student Info Column (Combined for cleaner desktop look)
+                        DataCell(
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.blue.shade50,
+                                child: Text(
+                                  student.name[0],
+                                  style: const TextStyle(color: Colors.blue),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    student.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${student.id} | ${student.courseYear}",
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Status Column
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isOut
+                                  ? Colors.red.shade50
+                                  : Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isOut
+                                    ? Colors.red.shade200
+                                    : Colors.green.shade200,
+                              ),
+                            ),
+                            child: Text(
+                              isOut ? "DEPARTED" : "PRESENT",
+                              style: TextStyle(
+                                color: isOut
+                                    ? Colors.red.shade700
+                                    : Colors.green.shade700,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
