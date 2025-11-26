@@ -1,3 +1,4 @@
+import 'package:attendance_monitoring/features/attendace/presentation/screens/library_attendance_screen.dart';
 import 'package:attendance_monitoring/features/auth/presentation/screens/login_screen.dart';
 
 import './app_routes.dart';
@@ -10,6 +11,11 @@ final GoRouter router = GoRouter(
       path: Routes.login,
       builder: (BuildContext context, GoRouterState state) =>
           const LoginScreen(),
+    ),
+    GoRoute(
+      path: Routes.login,
+      builder: (BuildContext context, GoRouterState state) =>
+          const LibraryAttendanceScreen(),
     ),
   ],
 );
