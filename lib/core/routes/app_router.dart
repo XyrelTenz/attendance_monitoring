@@ -13,7 +13,7 @@ final GoRouter router = GoRouter(
           const LoginScreen(),
     ),
     GoRoute(
-      path: Routes.login,
+      path: Routes.home,
       builder: (BuildContext context, GoRouterState state) =>
           const LibraryAttendanceScreen(),
     ),
