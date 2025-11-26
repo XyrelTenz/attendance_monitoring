@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:attendance_monitoring/features/attendace/presentation/widgets/face_scanner_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import "../../models/student_model.dart";
 import '../../data/datasources/mock_data.dart';
-import "package:attendance_monitoring/features/attendace/presentation/widgets/attendance_log_table.dart";
+import "../widgets/attendance_log_table.dart";
+import '../widgets/face_scanner_view.dart';
 
 class LibraryAttendanceScreen extends StatefulWidget {
   const LibraryAttendanceScreen({super.key});
@@ -17,6 +17,7 @@ class LibraryAttendanceScreen extends StatefulWidget {
 class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
   List<StudentModel> logs = [];
   String _currentTime = "";
+  String _currentDate = "";
   Timer? _timer;
 
   @override
@@ -34,11 +35,16 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
 
   void _startClock() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final now = DateTime.now();
       setState(() {
-        _currentTime = DateFormat('hh:mm:ss a').format(DateTime.now());
+        _currentTime = DateFormat('hh:mm:ss a').format(now);
+        _currentDate = DateFormat('EEEE, MMMM d, yyyy').format(now);
       });
     });
-    _currentTime = DateFormat('hh:mm:ss a').format(DateTime.now());
+    // Init values
+    final now = DateTime.now();
+    _currentTime = DateFormat('hh:mm:ss a').format(now);
+    _currentDate = DateFormat('EEEE, MMMM d, yyyy').format(now);
   }
 
   void _simulateFaceDetection() {
@@ -48,18 +54,38 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
       logs.insert(0, newStudent);
     });
 
+    // Custom "Toast" overlay using SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 10),
-            Text("Attendance Recorded: ${newStudent.name}"),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, color: Colors.green, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Attendance Recorded",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text("${newStudent.name} - ${newStudent.courseYear}"),
+              ],
+            ),
           ],
         ),
-        backgroundColor: Colors.green.shade700,
+        backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
-        width: 400, // Fixed width for desktop snackbar look
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        width: 450,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -67,85 +93,119 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Colors.grey.shade100, // Light dashboard background
+      // Top App Bar
       appBar: AppBar(
+        toolbarHeight: 80,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        titleSpacing: 24,
         title: Row(
           children: [
-            const Icon(Icons.library_books, size: 28),
-            const SizedBox(width: 10),
-            const Text(
-              "Library Attendance Kiosk",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.school,
+                color: Colors.blueAccent,
+                size: 30,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "JHCSC Library",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.black87,
+                  ),
+                ),
+                Text(
+                  "Attendance Monitoring System",
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
             ),
           ],
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 1,
         actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20.0),
-              child: Text(
-                _currentTime,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueAccent,
+          // Clock Section
+          Padding(
+            padding: const EdgeInsets.only(right: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  _currentTime,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'Monospace', // Digital clock feel
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
+                Text(
+                  _currentDate,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
             ),
           ),
         ],
       ),
+
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(24.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // LEFT PANEL: Scanner & Info (40% width)
-            Expanded(
-              flex: 2,
+            // LEFT PANEL: Scanner (Fixed Width ~350-400px)
+            SizedBox(
+              width: 380,
               child: Column(
                 children: [
                   FaceScannerView(onSimulateScan: _simulateFaceDetection),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // Instructions Card
+                  // Helper / Instructions Card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.shade200),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Instructions",
+                        const Text(
+                          "Guidelines",
                           style: TextStyle(
-                            color: Colors.grey.shade800,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        _buildInstructionRow(
-                          Icons.looks_one,
-                          "Remove face mask and glasses.",
+                        const SizedBox(height: 16),
+                        _buildGuideline(
+                          Icons.visibility,
+                          "Look directly at the camera",
                         ),
-                        const SizedBox(height: 8),
-                        _buildInstructionRow(
-                          Icons.looks_two,
-                          "Look directly at the camera.",
+                        _buildGuideline(
+                          Icons.masks,
+                          "Remove face masks/glasses",
                         ),
-                        const SizedBox(height: 8),
-                        _buildInstructionRow(
-                          Icons.looks_3,
-                          "Wait for the green confirmation.",
+                        _buildGuideline(
+                          Icons.light_mode,
+                          "Ensure adequate lighting",
                         ),
                       ],
                     ),
@@ -154,22 +214,26 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
               ),
             ),
 
-            const SizedBox(width: 20),
+            const SizedBox(width: 24),
 
-            Expanded(flex: 3, child: AttendanceLogTable(students: logs)),
+            // RIGHT PANEL: Table (Takes remaining space)
+            Expanded(child: AttendanceLogTable(students: logs)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInstructionRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Colors.blueAccent),
-        const SizedBox(width: 10),
-        Text(text, style: TextStyle(color: Colors.grey.shade600)),
-      ],
+  Widget _buildGuideline(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.blueGrey),
+          const SizedBox(width: 12),
+          Text(text, style: TextStyle(color: Colors.grey.shade700)),
+        ],
+      ),
     );
   }
 }
