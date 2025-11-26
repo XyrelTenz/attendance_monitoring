@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'dart:math'; // For randomizing mock data
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import "../../models/student_model.dart";
 import '../../data/datasources/mock_data.dart';
 import "../widgets/attendance_log_table.dart";
-import '../widgets/face_scanner_view.dart';
+import '../widgets/qr_kiosk_view.dart'; // Import the new View
 
 class LibraryAttendanceScreen extends StatefulWidget {
   const LibraryAttendanceScreen({super.key});
@@ -19,6 +20,8 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
   String _currentTime = "";
   String _currentDate = "";
   Timer? _timer;
+
+  final String _kioskId = "JHCSC-LIB-CODE-001";
 
   @override
   void initState() {
@@ -36,25 +39,42 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
   void _startClock() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final now = DateTime.now();
-      setState(() {
-        _currentTime = DateFormat('hh:mm:ss a').format(now);
-        _currentDate = DateFormat('EEEE, MMMM d, yyyy').format(now);
-      });
+      if (mounted) {
+        setState(() {
+          _currentTime = DateFormat('hh:mm:ss a').format(now);
+          _currentDate = DateFormat('EEEE, MMMM d, yyyy').format(now);
+        });
+      }
     });
-    // Init values
     final now = DateTime.now();
     _currentTime = DateFormat('hh:mm:ss a').format(now);
     _currentDate = DateFormat('EEEE, MMMM d, yyyy').format(now);
   }
 
-  void _simulateFaceDetection() {
-    final newStudent = MockData.scannedStudent.copyWith(timeIn: DateTime.now());
+  // --- SIMULATION LOGIC ---
+  // In a real app, this function would be called by a WebSocket or Firebase Stream
+  // listening for when a student scans the QR code.
+  void _onStudentScannedQr() {
+    // 1. Randomly pick a student to simulate a real scan
+    final randomStudent = MockData
+        .attendanceLogs[Random().nextInt(MockData.attendanceLogs.length)];
+
+    // 2. Create a new log entry
+    final newLog = randomStudent.copyWith(
+      timeIn: DateTime.now(),
+      // Toggle random status (In vs Out) for variety
+      timeOut: Random().nextBool() ? null : DateTime.now(),
+    );
 
     setState(() {
-      logs.insert(0, newStudent);
+      logs.insert(0, newLog);
     });
 
-    // Custom "Toast" overlay using SnackBar
+    _showSuccessSnackBar(newLog);
+  }
+
+  void _showSuccessSnackBar(StudentModel student) {
+    bool isOut = student.timeOut != null;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -65,7 +85,11 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check, color: Colors.green, size: 20),
+              child: Icon(
+                isOut ? Icons.logout : Icons.login,
+                color: isOut ? Colors.orange : Colors.green,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Column(
@@ -73,19 +97,19 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Attendance Recorded",
+                  isOut ? "Student Departed" : "Student Arrived",
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text("${newStudent.name} - ${newStudent.courseYear}"),
+                Text("${student.name} - ${student.courseYear}"),
               ],
             ),
           ],
         ),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: isOut ? Colors.orange.shade800 : Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        width: 450,
-        duration: const Duration(seconds: 2),
+        width: 400,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -93,49 +117,55 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100, // Light dashboard background
-      // Top App Bar
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        toolbarHeight: 80,
+        toolbarHeight: 90,
         backgroundColor: Colors.white,
-        elevation: 1,
-        titleSpacing: 24,
+        elevation: 0,
+        titleSpacing: 32,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blueAccent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.school,
-                color: Colors.blueAccent,
-                size: 30,
-              ),
+            Image.network(
+              'https://cdn-icons-png.flaticon.com/512/2232/2232688.png', // Replace with local asset
+              height: 40,
             ),
             const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "JHCSC Library",
+                  "JHCSC Library Kiosk",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: 24,
                     color: Colors.black87,
                   ),
                 ),
-                Text(
-                  "Attendance Monitoring System",
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "System Online • $_kioskId",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ],
         ),
         actions: [
-          // Clock Section
           Padding(
             padding: const EdgeInsets.only(right: 32.0),
             child: Column(
@@ -145,68 +175,54 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
                 Text(
                   _currentTime,
                   style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Monospace', // Digital clock feel
+                    fontSize: 28,
+                    fontWeight: FontWeight.w300,
                     color: Colors.black87,
                   ),
                 ),
                 Text(
                   _currentDate,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey,
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(32.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // LEFT PANEL: Scanner (Fixed Width ~350-400px)
+            // --- LEFT PANEL: The Kiosk QR ---
             SizedBox(
-              width: 380,
+              width: 350,
               child: Column(
                 children: [
-                  FaceScannerView(onSimulateScan: _simulateFaceDetection),
-
+                  QrKioskView(
+                    kioskId: _kioskId,
+                    onSimulateIncomingScan: _onStudentScannedQr,
+                  ),
                   const SizedBox(height: 24),
-
-                  // Helper / Instructions Card
+                  // Decorative "Steps" Card
                   Container(
-                    width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.blue.shade50.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: Colors.blue.shade100),
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Guidelines",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
+                        _buildStep(1, "Open your Student App"),
                         const SizedBox(height: 16),
-                        _buildGuideline(
-                          Icons.visibility,
-                          "Look directly at the camera",
-                        ),
-                        _buildGuideline(
-                          Icons.masks,
-                          "Remove face masks/glasses",
-                        ),
-                        _buildGuideline(
-                          Icons.light_mode,
-                          "Ensure adequate lighting",
-                        ),
+                        _buildStep(2, "Tap 'Scan QR'"),
+                        const SizedBox(height: 16),
+                        _buildStep(3, "Scan the code above"),
                       ],
                     ),
                   ),
@@ -214,26 +230,63 @@ class _LibraryAttendanceScreenState extends State<LibraryAttendanceScreen> {
               ),
             ),
 
-            const SizedBox(width: 24),
+            const SizedBox(width: 32),
 
-            // RIGHT PANEL: Table (Takes remaining space)
-            Expanded(child: AttendanceLogTable(students: logs)),
+            // --- RIGHT PANEL: The Live Table ---
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      "LIVE ACTIVITY FEED",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade400,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: AttendanceLogTable(students: logs)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGuideline(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.blueGrey),
-          const SizedBox(width: 12),
-          Text(text, style: TextStyle(color: Colors.grey.shade700)),
-        ],
-      ),
+  Widget _buildStep(int number, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.blueAccent,
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            number.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          text,
+          style: TextStyle(
+            color: Colors.blueGrey.shade700,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
